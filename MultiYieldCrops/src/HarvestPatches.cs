@@ -21,7 +21,7 @@ namespace MultiYieldCrops
         public static void CropHarvest_prefix(Crop __instance,out bool __state)
         {
             //checks if crop can be harvested
-            __state = ((int)__instance.currentPhase >= __instance.phaseDays.Count - 1 && (!__instance.fullyGrown || (int)__instance.dayOfCurrentPhase <= 0));
+            __state = (__instance.currentPhase.Value >= __instance.phaseDays.Count - 1 && (!__instance.fullyGrown.Value || __instance.dayOfCurrentPhase.Value <= 0));
         }
 
         public static void CropHarvest_postfix(int xTile, int yTile, HoeDirt soil, JunimoHarvester junimoHarvester,
