@@ -1,4 +1,4 @@
-﻿using Harmony;
+﻿using HarmonyLib;
 using Microsoft.Xna.Framework;
 using StardewModdingAPI;
 using StardewValley;
@@ -23,8 +23,8 @@ namespace MultiYieldCrop
             instance = this;
 
             //harmony stuff
-            HarvestPatches.Initialize(Monitor);
-            var harmony = HarmonyInstance.Create(this.ModManifest.UniqueID);
+            HarvestPatches.Initialize(this.Monitor);
+            Harmony harmony = new(this.ModManifest.UniqueID);
             harmony.Patch(
                 original: AccessTools.Method(typeof(Crop), nameof(Crop.harvest)),
                 prefix: new HarmonyMethod(typeof(HarvestPatches), nameof(HarvestPatches.CropHarvest_prefix)),
@@ -38,22 +38,22 @@ namespace MultiYieldCrop
                 );
                 */
 
-            helper.Events.GameLoop.SaveLoaded += UpdateObjectInfoSource;
+            helper.Events.GameLoop.SaveLoaded += this.UpdateObjectInfoSource;
 
-            InitializeHarvestRules();
+            this.InitializeHarvestRules();
         }
 
         public void SpawnHarvest(Vector2 tileLocation, string cropName, int fertilizer, JunimoHarvester junimo = null)
         {
 
-            if (!allHarvestRules.ContainsKey(cropName))
+            if (!this.allHarvestRules.ContainsKey(cropName))
                 return;
 
-            Vector2 location = new Vector2((tileLocation.X * 64 + 32), (tileLocation.Y * 64 + 32));
+            Vector2 location = new((tileLocation.X * 64 + 32), (tileLocation.Y * 64 + 32));
 
-            foreach (Rule data in allHarvestRules[cropName])
+            foreach (Rule data in this.allHarvestRules[cropName])
             {
-                foreach (Item item in SpawnItems(data,fertilizer))
+                foreach (Item item in this.SpawnItems(data,fertilizer))
                 {
                     if (item == null)
                         continue;
@@ -73,7 +73,7 @@ namespace MultiYieldCrop
         private IEnumerable<Item> SpawnItems(Rule data, int fertilizer)
         {
             int quality = fertilizer;
-            int itemID = GetIndexByName(data.ItemName, data.ExtraYieldItemType);
+            int itemID = this.GetIndexByName(data.ItemName, data.ExtraYieldItemType);
             int xTile = Game1.player.getTileX();
             int yTile = Game1.player.getTileY(); ;
 
@@ -93,7 +93,7 @@ namespace MultiYieldCrop
 
             if (itemID < 0)
             {
-                Monitor.Log($"No idea what {data.ExtraYieldItemType} {data.ItemName} is", LogLevel.Warn);
+                this.Monitor.Log($"No idea what {data.ExtraYieldItemType} {data.ItemName} is", LogLevel.Warn);
                 yield return null;
             }
 
@@ -103,33 +103,25 @@ namespace MultiYieldCrop
                     quality = 2;
                 else if (random.NextDouble() < lowerQualityChance)
                     quality = 1;
-                yield return CreateItem(itemID, data.ExtraYieldItemType, quality);
+                yield return this.CreateItem(itemID, data.ExtraYieldItemType, quality);
             }
 
         }
 
         private Item CreateItem(int itemID,string ItemType,int quality)
         {
-            switch (ItemType)
+            return ItemType switch
             {
-                case "Object":
-                    return new StardewValley.Object(itemID, 1, false, quality: quality);
-                case "BigCraftable":
-                    return new StardewValley.Object(Vector2.Zero, itemID);
-                case "Clothing":
-                    return new Clothing(itemID);
-                case "Ring":
-                    return new Ring(itemID);
-                case "Hat":
-                    return new Hat(itemID);
-                case "Boot":
-                    return new Boots(itemID);
-                case "Furniture":
-                    return new Furniture(itemID, Vector2.Zero);
-                case "Weapon":
-                    return new MeleeWeapon(itemID);
-                default: return null;
-            }
+                "Object" => new StardewValley.Object(itemID, 1, false, quality: quality),
+                "BigCraftable" => new StardewValley.Object(Vector2.Zero, itemID),
+                "Clothing" => new Clothing(itemID),
+                "Ring" => new Ring(itemID),
+                "Hat" => new Hat(itemID),
+                "Boot" => new Boots(itemID),
+                "Furniture" => new Furniture(itemID, Vector2.Zero),
+                "Weapon" => new MeleeWeapon(itemID),
+                _ => null,
+            };
         }
 
         public int GetIndexByName(string name,string itemType)
@@ -138,7 +130,7 @@ namespace MultiYieldCrop
             if (itemType == "Object" && name == "Stone")
                 return 390;
 
-            foreach (KeyValuePair<int, string> kvp in ObjectInfoSource[itemType])
+            foreach (KeyValuePair<int, string> kvp in this.ObjectInfoSource[itemType])
             {
                 if (kvp.Value.Split('/')[0] == name)
                 {
@@ -150,7 +142,7 @@ namespace MultiYieldCrop
         private void UpdateObjectInfoSource(object sender, StardewModdingAPI.Events.SaveLoadedEventArgs e)
         {
             //load up all the object information into a static dictionary
-            ObjectInfoSource = new Dictionary<string, IDictionary<int, string>>
+            this.ObjectInfoSource = new Dictionary<string, IDictionary<int, string>>
             {
                 { "Object", Game1.objectInformation },
                 { "BigCraftable", Game1.bigCraftablesInformation },
@@ -158,55 +150,50 @@ namespace MultiYieldCrop
                 { "Ring", Game1.objectInformation },
                 {
                     "Hat",
-                    Helper.Content.Load<Dictionary<int, string>>
-                        (@"Data/hats", ContentSource.GameContent)
+                    this.Helper.GameContent.Load<Dictionary<int, string>>(@"Data/hats")
                 },
                 {
                     "Boot",
-                    Helper.Content.Load<Dictionary<int, string>>
-                            (@"Data/Boots", ContentSource.GameContent)
+                    this.Helper.GameContent.Load<Dictionary<int, string>>(@"Data/Boots")
                 },
                 {
                     "Furniture",
-                    Helper.Content.Load<Dictionary<int, string>>
-                            (@"Data/Furniture", ContentSource.GameContent)
+                    this.Helper.GameContent.Load<Dictionary<int, string>>(@"Data/Furniture")
                 },
                 {
                     "Weapon",
-                    Helper.Content.Load<Dictionary<int, string>>
-                            (@"Data/weapons", ContentSource.GameContent)
+                    this.Helper.GameContent.Load<Dictionary<int, string>>(@"Data/weapons")
                 }
             };
 
         }
 
-
-
         private void InitializeHarvestRules()
         {
-            allHarvestRules = new Dictionary<string, List<Rule>>();
+            this.allHarvestRules = new Dictionary<string, List<Rule>>();
             try
             {
-                ContentModel data = Helper.ReadConfig<ContentModel>();
+                ContentModel data = this.Helper.ReadConfig<ContentModel>();
                 if (data.Harvests != null)
                 {
-                    LoadContentPack(data);
+                    this.LoadContentPack(data);
                 }
 
-            } catch(Exception ex)
+            }
+            catch(Exception ex)
             {
-                Monitor.Log(ex.Message + ex.StackTrace,LogLevel.Error);
+                this.Monitor.Log(ex.Message + ex.StackTrace,LogLevel.Error);
             }
 
-            foreach (var pack in Helper.ContentPacks.GetOwned())
+            foreach (var pack in this.Helper.ContentPacks.GetOwned())
             {
                 if (!pack.HasFile("HarvestRules.json"))
                 {
-                    Monitor.Log($"{pack.Manifest.UniqueID} does not have a HarvestRules.json", LogLevel.Error);
+                    this.Monitor.Log($"{pack.Manifest.UniqueID} does not have a HarvestRules.json", LogLevel.Error);
                     continue;
                 }
                 
-                LoadContentPack(pack.ReadJsonFile<ContentModel>("HarvestRules.json"));
+                this.LoadContentPack(pack.ReadJsonFile<ContentModel>("HarvestRules.json"));
                 
             }
         }
@@ -217,7 +204,7 @@ namespace MultiYieldCrop
 
             foreach (var harvests in data.Harvests)
             {
-                LoadCropHarvestRulesFor(harvests.CropName,harvests.HarvestRules);
+                this.LoadCropHarvestRulesFor(harvests.CropName,harvests.HarvestRules);
             }
         }
 
@@ -230,9 +217,9 @@ namespace MultiYieldCrop
                     bool skipRule = false;
                     foreach (string mod in rule.disableWithMods)
                     {
-                        if (Helper.ModRegistry.IsLoaded(mod))
+                        if (this.Helper.ModRegistry.IsLoaded(mod))
                         {
-                            Monitor.Log($"A rule was skipped for {cropName} because {mod} was found", LogLevel.Trace);
+                            this.Monitor.Log($"A rule was skipped for {cropName} because {mod} was found", LogLevel.Trace);
                             skipRule = true;
                             break;
                         }
@@ -243,12 +230,11 @@ namespace MultiYieldCrop
                 }
 
 
-                if (allHarvestRules.ContainsKey(cropName)){
-                    allHarvestRules[cropName].Add(rule);
-                } else
+                if (this.allHarvestRules.ContainsKey(cropName)){
+                    this.allHarvestRules[cropName].Add(rule);
+                }else
                 {
-                    allHarvestRules[cropName] = new List<Rule>();
-                    allHarvestRules[cropName].Add(rule);
+                    this.allHarvestRules[cropName] = new List<Rule>{rule};
                 }
                 
             }

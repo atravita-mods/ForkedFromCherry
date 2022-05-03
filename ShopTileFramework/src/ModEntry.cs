@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using HarmonyLib;
@@ -8,10 +8,9 @@ using ShopTileFramework.Patches;
 using ShopTileFramework.Shop;
 using ShopTileFramework.Utility;
 using StardewModdingAPI;
-using StardewModdingAPI.Events;
-using StardewModdingAPI.Utilities;
 using StardewValley;
 using StardewValley.Menus;
+using System.Linq;
 using xTile.ObjectModel;
 
 namespace ShopTileFramework
@@ -31,7 +30,6 @@ namespace ShopTileFramework
         private bool _changedMarnieStock;
         internal static GameLocation SourceLocation;
         private static Vector2 _playerPos = Vector2.Zero;
-        internal static ShopManager ShopManager;
 
         public static bool VerboseLogging;
 
@@ -64,7 +62,6 @@ namespace ShopTileFramework
             new ConsoleCommands().Register(helper);
 
             //get all the info from content packs
-            ShopManager = new ShopManager();
             ShopManager.LoadContentPacks();
 
             //load data into game content
@@ -79,7 +76,7 @@ namespace ShopTileFramework
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void GameLoop_UpdateTicking(object sender, UpdateTickingEventArgs e)
+        private void GameLoop_UpdateTicking(object sender, StardewModdingAPI.Events.UpdateTickingEventArgs e)
         {
             //Fixes the game warping the player to places we don't want them to warp
             //if buildings/animal purchase menus are brought up from a custom tile
@@ -98,7 +95,7 @@ namespace ShopTileFramework
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void Display_MenuChanged(object sender, MenuChangedEventArgs e)
+        private void Display_MenuChanged(object sender, StardewModdingAPI.Events.MenuChangedEventArgs e)
         {
             //this block fixes marnie's portrait popping up after purchasing an animal
             if ((e.OldMenu is PurchaseAnimalsMenu || e.OldMenu?.GetType().FullName == "FarmAnimalVarietyRedux.Menus.CustomPurchaseAnimalsMenu")
@@ -157,7 +154,7 @@ namespace ShopTileFramework
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void GameLoop_SaveLoaded(object sender, SaveLoadedEventArgs e)
+        private void GameLoop_SaveLoaded(object sender, StardewModdingAPI.Events.SaveLoadedEventArgs e)
         {
             Translations.UpdateSelectedLanguage();
             ShopManager.UpdateTranslations();
@@ -173,7 +170,7 @@ namespace ShopTileFramework
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void GameLoop_GameLaunched(object sender, GameLaunchedEventArgs e)
+        private void GameLoop_GameLaunched(object sender, StardewModdingAPI.Events.GameLaunchedEventArgs e)
         {
             ShopManager.InitializeShops();
 
@@ -187,7 +184,7 @@ namespace ShopTileFramework
             APIs.RegisterFAVR();
         }
 
-        private void JsonAssets_AddedItemsToShop(object sender, EventArgs e)
+        private void JsonAssets_AddedItemsToShop(object sender, System.EventArgs e)
         {
             //make sure we only remove all objects if we camew from a vanilla store
             //this stops us from removing all packs from custom TMXL or STF stores
@@ -207,7 +204,7 @@ namespace ShopTileFramework
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void GameLoop_DayStarted(object sender, DayStartedEventArgs e)
+        private void GameLoop_DayStarted(object sender, StardewModdingAPI.Events.DayStartedEventArgs e)
         {
             ShopManager.UpdateStock();
         }
@@ -218,7 +215,7 @@ namespace ShopTileFramework
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void Input_ButtonPressed(object sender, ButtonPressedEventArgs e)
+        private void Input_ButtonPressed(object sender, StardewModdingAPI.Events.ButtonPressedEventArgs e)
         {
             //context and button check
             if (!Context.CanPlayerMove)
@@ -261,7 +258,7 @@ namespace ShopTileFramework
         /// </summary>
         /// <param name="tileProperty"></param>
         /// <param name="e"></param>
-        private void CheckForShopToOpen(IPropertyCollection tileProperty, ButtonPressedEventArgs e)
+        private void CheckForShopToOpen(IPropertyCollection tileProperty, StardewModdingAPI.Events.ButtonPressedEventArgs e)
         {
             //check if there is a Shop property on clicked tile
             tileProperty.TryGetValue("Shop", out PropertyValue shopProperty);
@@ -287,14 +284,13 @@ namespace ShopTileFramework
                 else //no vanilla shop found
                 {
                     //Extract the tile property value
-                    Dictionary<string, ItemShop> itemShops = Game1.content.Load<Dictionary<string, ItemShop>>(PathUtilities.NormalizePath("Mods/ShopTileFramework/ItemShops"));
                     string shopName = shopProperty.ToString();
 
-                    if (itemShops.ContainsKey(shopName))
+                    if (ShopManager.ItemShops.ContainsKey(shopName))
                     {
                         //stop the click action from going through after the menu has been opened
                         helper.Input.Suppress(e.Button);
-                        itemShops[shopName].DisplayShop();
+                        ShopManager.ItemShops[shopName].DisplayShop();
                     }
                     else
                     {
@@ -309,13 +305,11 @@ namespace ShopTileFramework
                 if (shopProperty != null) //no animal shop found
                 {
                     string shopName = shopProperty.ToString();
-
-                    Dictionary<string, AnimalShop> animalShops = Game1.content.Load<Dictionary<string, AnimalShop>>(PathUtilities.NormalizePath("Mods/ShopTileFramework/AnimalShops"));
-                    if (animalShops.ContainsKey(shopName))
+                    if (ShopManager.AnimalShops.ContainsKey(shopName))
                     {
                         //stop the click action from going through after the menu has been opened
                         helper.Input.Suppress(e.Button);
-                        animalShops[shopName].DisplayShop();
+                        ShopManager.AnimalShops[shopName].DisplayShop();
                     }
                     else
                     {
