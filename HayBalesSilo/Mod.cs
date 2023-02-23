@@ -1,6 +1,6 @@
 ﻿using StardewModdingAPI;
 using StardewValley;
-using Harmony;
+using HarmonyLib;
 using StardewModdingAPI.Events;
 using Microsoft.Xna.Framework;
 using System.Collections.Generic;
@@ -8,24 +8,26 @@ using StardewValley.Menus;
 using StardewValley.Locations;
 using System.Linq;
 using StardewValley.Buildings;
+using GenericModConfigMenu;
 
 namespace HayBalesSilo
 {
-    public class ModEntry : Mod, IAssetEditor
+    public class ModEntry : Mod
     {
         internal static IMonitor monitor;
         internal static ModConfig Config;
         public override void Entry(IModHelper helper)
         {
             monitor = Monitor;
-            Config = this.Helper.ReadConfig<ModConfig>();
+            Config = helper.ReadConfig<ModConfig>();
 
-            var harmony = HarmonyInstance.Create(this.ModManifest.UniqueID);
+            var harmony = new Harmony(this.ModManifest.UniqueID);
             harmony.Patch(
                 original: AccessTools.Method(typeof(Utility), nameof(Utility.numSilos)),
                 postfix: new HarmonyMethod(typeof(PatchNumSilos), nameof(PatchNumSilos.Postfix))
                 );
 
+            helper.Events.Content.AssetRequested += this.OnAssetRequested;
             helper.Events.Input.ButtonPressed += Input_ButtonPressed;
             helper.Events.Display.MenuChanged += Display_MenuChanged;
 
@@ -144,34 +146,35 @@ namespace HayBalesSilo
             return numHayBales;
         }
 
-        public bool CanEdit<T>(IAssetInfo asset)
-        {
-            return asset.AssetNameEquals("Data/BigCraftablesInformation");
-        }
-
-        public void Edit<T>(IAssetData asset)
+        public void OnAssetRequested(object sender, AssetRequestedEventArgs e)
         {
 
-            if (asset.AssetNameEquals("Data/BigCraftablesInformation"))
+            if (e.NameWithoutLocale.IsEquivalentTo("Data/BigCraftablesInformation"))
             {
-                IDictionary<int, string> data = asset.AsDictionary<int, string>().Data;
-                string[] fields = data[45].Split('/');
+                e.Edit(asset =>
+                {
+                    IDictionary<int, string> data = asset.AsDictionary<int, string>().Data;
+                    string[] fields = data[45].Split('/');
 
-                fields[4] = Helper.Translation.Get("Description",
-                    new { capacity = 240 * Config.HayBaleEquivalentToHowManySilos }); //description
-                fields[8] = Helper.Translation.Get("DisplayName"); //display name
+                    fields[4] = Helper.Translation.Get("Description",
+                        new { capacity = 240 * Config.HayBaleEquivalentToHowManySilos }); //description
+                    fields[8] = Helper.Translation.Get("DisplayName"); //display name
 
-                data[45] = string.Join("/", fields);
+                    data[45] = string.Join("/", fields);
+                });
             }
+        }
         }
     }
 
-    class ModConfig
+    public class ModConfig
     {
         public bool RequiresConstructedSilo { get; set; } = true;
         public int HayBaleEquivalentToHowManySilos { get; set; } = 1;
         public int HaybalePrice { get; set; } = 5000;
     }
+
+
     public class PatchNumSilos
     {
         internal static void Postfix(ref int __result)
