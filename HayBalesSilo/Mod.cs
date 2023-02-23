@@ -30,7 +30,7 @@ namespace HayBalesSilo
             helper.Events.Content.AssetRequested += this.OnAssetRequested;
             helper.Events.Input.ButtonPressed += Input_ButtonPressed;
             helper.Events.Display.MenuChanged += Display_MenuChanged;
-
+            helper.Events.GameLoop.GameLaunched += this.OnGameLaunched;
         }
 
         // Add GMCM compatibility
