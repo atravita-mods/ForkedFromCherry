@@ -15,6 +15,6 @@
         public bool FilterSeedsBySeason { get; set; } = true;
         public int Stock { get; set; } = int.MaxValue;
         public int MaxNumItemsSoldInItemStock { get; set; } = int.MaxValue;
-        public string[] When { get; set; } = null;
+        public string[]? When { get; set; } = null;
     }
 }

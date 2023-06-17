@@ -24,7 +24,7 @@ namespace ShopTileFramework.Shop
         /// </summary>
         public void UpdateTranslations()
         {
-            ClosedMessage = Translations.Localize(ClosedMessage, LocalizedClosedMessage);
+            this.ClosedMessage = Translations.Localize(this.ClosedMessage, this.LocalizedClosedMessage);
         }
 
         /// <summary>
@@ -34,33 +34,33 @@ namespace ShopTileFramework.Shop
         private void UpdateShopAnimalStock()
         {
             //BFAV patches this anyways so it'll automatically work if installed
-            _allAnimalsStock = StardewValley.Utility.getPurchaseAnimalStock();
+            this._allAnimalsStock = StardewValley.Utility.getPurchaseAnimalStock();
 
-            var animalStockNames = AnimalStock.Select(animalStockName => APIs.FAVR != null ? APIs.FAVR.GetInternalName(animalStockName) : animalStockName);
-            _shopAnimalStock = new List<Object>();
-            foreach (var animal in _allAnimalsStock)
+            var animalStockNames = this.AnimalStock.Select(animalStockName => APIs.FAVR != null ? APIs.FAVR.GetInternalName(animalStockName) : animalStockName);
+            this._shopAnimalStock = new List<Object>();
+            foreach (var animal in this._allAnimalsStock)
             {
                 if (animalStockNames.Contains(animal.Name))
                 {
-                    _shopAnimalStock.Add(animal);
+                    this._shopAnimalStock.Add(animal);
                 }
             }
         }
         public void DisplayShop(bool debug = false)
         {
             //skip condition checking if called from console commands
-            if (debug || APIs.Conditions.CheckConditions(When))
+            if (debug || APIs.Conditions.CheckConditions(this.When))
             {
                 //get animal stock each time to refresh requirement checks
-                UpdateShopAnimalStock();
+                this.UpdateShopAnimalStock();
 
                 //sets variables I use to control hardcoded warps
                 ModEntry.SourceLocation = Game1.currentLocation;
-                Game1.activeClickableMenu = new PurchaseAnimalsMenu(_shopAnimalStock);
+                Game1.activeClickableMenu = new PurchaseAnimalsMenu(this._shopAnimalStock);
             }
-            else if (ClosedMessage != null)
+            else if (this.ClosedMessage != null)
             {
-                Game1.activeClickableMenu = new DialogueBox(ClosedMessage);
+                Game1.activeClickableMenu = new DialogueBox(this.ClosedMessage);
             }
         }
     }

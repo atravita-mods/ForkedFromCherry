@@ -1,4 +1,6 @@
-﻿using ShopTileFramework.src.API;
+﻿// Ignore Spelling: API
+
+using ShopTileFramework.src.API;
 using StardewModdingAPI;
 
 namespace ShopTileFramework.API
@@ -7,7 +9,7 @@ namespace ShopTileFramework.API
     /// This class is used to register external APIs and hold the instances of those APIs to be accessed
     /// by the rest of the mod
     /// </summary>
-    class APIs
+    internal static class APIs
     {
         internal static IJsonAssetsApi JsonAssets;
         internal static IBFAVApi BFAV;

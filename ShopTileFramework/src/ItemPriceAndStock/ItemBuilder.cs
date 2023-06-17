@@ -36,14 +36,14 @@ namespace ShopTileFramework.ItemPriceAndStock
         /// <returns></returns>
         public bool AddItemToStock(string itemName, double priceMultiplier = 1)
         {
-            int id = ItemsUtil.GetIndexByName(itemName, _itemStock.ItemType);
+            int id = ItemsUtil.GetIndexByName(itemName, this._itemStock.ItemType);
             if (id < 0)
             {
-                ModEntry.monitor.Log($"{_itemStock.ItemType} named \"{itemName}\" could not be added to the Shop {_itemStock.ShopName}", LogLevel.Trace);
+                ModEntry.monitor.Log($"{this._itemStock.ItemType} named \"{itemName}\" could not be added to the Shop {this._itemStock.ShopName}", LogLevel.Trace);
                 return false;
             }
 
-            return AddItemToStock(id, priceMultiplier);
+            return this.AddItemToStock(id, priceMultiplier);
         }
 
         /// <summary>
@@ -56,26 +56,26 @@ namespace ShopTileFramework.ItemPriceAndStock
         {
 
             if (ModEntry.VerboseLogging)
-                ModEntry.monitor.Log($"Adding item ID {itemId} to {_itemStock.ShopName}", LogLevel.Debug);
+                ModEntry.monitor.Log($"Adding item ID {itemId} to {this._itemStock.ShopName}", LogLevel.Debug);
 
             if (itemId < 0)
             {
-                ModEntry.monitor.Log($"{_itemStock.ItemType} of ID {itemId} could not be added to the Shop {_itemStock.ShopName}", LogLevel.Trace);
+                ModEntry.monitor.Log($"{this._itemStock.ItemType} of ID {itemId} could not be added to the Shop {this._itemStock.ShopName}", LogLevel.Trace);
                 return false;
             }
 
-            if (_itemStock.ItemType == "Seed" && _itemStock.FilterSeedsBySeason)
+            if (this._itemStock.ItemType == "Seed" && this._itemStock.FilterSeedsBySeason)
             {
                 if (!ItemsUtil.IsInSeasonCrop(itemId)) return false;
             }
 
-            var item = CreateItem(itemId);
+            var item = this.CreateItem(itemId);
             if (item == null)
             {
                 return false;
             }
 
-            if (_itemStock.IsRecipe)
+            if (this._itemStock.IsRecipe)
             {
                 if (!ItemsUtil.RecipesList.Contains(item.Name))
                 {
@@ -84,8 +84,8 @@ namespace ShopTileFramework.ItemPriceAndStock
                 }
             }
 
-            var priceStockCurrency = GetPriceStockAndCurrency(item, priceMultiplier);
-            _itemPriceAndStock.Add(item, priceStockCurrency);
+            var priceStockCurrency = this.GetPriceStockAndCurrency(item, priceMultiplier);
+            this._itemPriceAndStock.Add(item, priceStockCurrency);
 
             return true;       
         }
@@ -97,13 +97,13 @@ namespace ShopTileFramework.ItemPriceAndStock
         /// <returns></returns>
         private ISalable CreateItem(int itemId)
         {
-            switch (_itemStock.ItemType)
+            switch (this._itemStock.ItemType)
             {
                 case "Object":
                 case "Seed":
-                    return new Object(itemId, _itemStock.Stock, _itemStock.IsRecipe, quality: _itemStock.Quality);
+                    return new Object(itemId, this._itemStock.Stock, this._itemStock.IsRecipe, quality: this._itemStock.Quality);
                 case "BigCraftable":
-                    return new Object(Vector2.Zero, itemId) { Stack = _itemStock.Stock, IsRecipe = _itemStock.IsRecipe };
+                    return new Object(Vector2.Zero, itemId) { Stack = this._itemStock.Stock, IsRecipe = this._itemStock.IsRecipe };
                 case "Clothing":
                     return new Clothing(itemId);
                 case "Ring":
@@ -135,20 +135,20 @@ namespace ShopTileFramework.ItemPriceAndStock
         {
             int[] priceStockCurrency;
             //if no price is provided, use the item's sale price multiplied by defaultSellPriceMultiplier
-            var price = (_itemStock.StockPrice == -1) ? (int)(item.salePrice()* _itemStock.DefaultSellPriceMultiplier) : _itemStock.StockPrice;
+            var price = (this._itemStock.StockPrice == -1) ? (int)(item.salePrice()* this._itemStock.DefaultSellPriceMultiplier) : this._itemStock.StockPrice;
             price = (int)(price*priceMultiplier);
 
-            if (_itemStock.CurrencyObjectId == -1) // no currency item
+            if (this._itemStock.CurrencyObjectId == -1) // no currency item
             {
-                priceStockCurrency = new[] { price, _itemStock.Stock };
+                priceStockCurrency = new[] { price, this._itemStock.Stock };
             }
-            else if (_itemStock.StockCurrencyStack == -1) //no stack provided for currency item so defaults to 1
+            else if (this._itemStock.StockCurrencyStack == -1) //no stack provided for currency item so defaults to 1
             {
-                priceStockCurrency = new[] { price, _itemStock.Stock, _itemStock.CurrencyObjectId };
+                priceStockCurrency = new[] { price, this._itemStock.Stock, this._itemStock.CurrencyObjectId };
             }
             else //both currency item and stack provided
             {
-                priceStockCurrency = new[] { price, _itemStock.Stock, _itemStock.CurrencyObjectId, _itemStock.StockCurrencyStack };
+                priceStockCurrency = new[] { price, this._itemStock.Stock, this._itemStock.CurrencyObjectId, this._itemStock.StockCurrencyStack };
             }
 
             return priceStockCurrency;

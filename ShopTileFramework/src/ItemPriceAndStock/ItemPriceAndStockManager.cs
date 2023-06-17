@@ -14,7 +14,7 @@ namespace ShopTileFramework.ItemPriceAndStock
         public Dictionary<ISalable, int[]> ItemPriceAndStock { get; set; }
         private readonly ItemStock[] _itemStocks;
         private readonly double _defaultSellPriceMultipler;
-        private readonly Dictionary<double, string[]> _priceMultiplierWhen;
+        private readonly Dictionary<double, string[]>? _priceMultiplierWhen;
         private readonly int _maxNumItemsSoldInStore;
         private readonly string _shopName;
         private readonly int _shopPrice;
@@ -25,29 +25,29 @@ namespace ShopTileFramework.ItemPriceAndStock
         /// <param name="data"></param>
         public ItemPriceAndStockManager(ItemShop data)
         {
-            _defaultSellPriceMultipler = data.DefaultSellPriceMultiplier;
-            _priceMultiplierWhen = data.PriceMultiplierWhen;
-            _itemStocks = data.ItemStocks;
-            _maxNumItemsSoldInStore = data.MaxNumItemsSoldInStore;
-            _shopName = data.ShopName;
-            _shopPrice = data.ShopPrice;
+            this._defaultSellPriceMultipler = data.DefaultSellPriceMultiplier;
+            this._priceMultiplierWhen = data.PriceMultiplierWhen;
+            this._itemStocks = data.ItemStocks;
+            this._maxNumItemsSoldInStore = data.MaxNumItemsSoldInStore;
+            this._shopName = data.ShopName;
+            this._shopPrice = data.ShopPrice;
         }
         public ItemPriceAndStockManager(VanillaShop data)
         {
-            _defaultSellPriceMultipler = data.DefaultSellPriceMultiplier;
-            _priceMultiplierWhen = data.PriceMultiplierWhen;
-            _itemStocks = data.ItemStocks;
-            _maxNumItemsSoldInStore = data.MaxNumItemsSoldInStore;
-            _shopName = data.ShopName;
-            _shopPrice = data.ShopPrice;
+            this._defaultSellPriceMultipler = data.DefaultSellPriceMultiplier;
+            this._priceMultiplierWhen = data.PriceMultiplierWhen;
+            this._itemStocks = data.ItemStocks;
+            this._maxNumItemsSoldInStore = data.MaxNumItemsSoldInStore;
+            this._shopName = data.ShopName;
+            this._shopPrice = data.ShopPrice;
         }
 
         public void Initialize()
         {
             //initialize each stock
-            foreach (ItemStock stock in _itemStocks)
+            foreach (ItemStock stock in this._itemStocks)
             {
-                stock.Initialize(_shopName, _shopPrice,_defaultSellPriceMultipler,_priceMultiplierWhen);
+                stock.Initialize(this._shopName, this._shopPrice, this._defaultSellPriceMultipler, this._priceMultiplierWhen);
             }
         }
 
@@ -56,21 +56,21 @@ namespace ShopTileFramework.ItemPriceAndStock
         /// </summary>
         public void Update()
         {
-            ItemPriceAndStock = new Dictionary<ISalable, int[]>();
-            ModEntry.monitor.Log($"Updating {_shopName}");
+            this.ItemPriceAndStock = new Dictionary<ISalable, int[]>();
+            ModEntry.monitor.Log($"Updating {this._shopName}");
 
-            foreach (ItemStock stock in _itemStocks)
+            foreach (ItemStock stock in this._itemStocks)
             {
                 var priceAndStock = stock.Update();
                 //null is returned if conhditions aren't met, skip adding this stock
                 if (priceAndStock == null) 
                     continue;
 
-                Add(priceAndStock);
+                this.Add(priceAndStock);
             }
 
             //randomly reduces the stock of the whole store down to maxNumItemsSoldInStore
-            ItemsUtil.RandomizeStock(ItemPriceAndStock,_maxNumItemsSoldInStore);
+            ItemsUtil.RandomizeStock(this.ItemPriceAndStock, this._maxNumItemsSoldInStore);
 
         }
 
@@ -82,7 +82,7 @@ namespace ShopTileFramework.ItemPriceAndStock
         {
             foreach (var kvp in dict)
             {
-                ItemPriceAndStock.Add(kvp.Key, kvp.Value);
+                this.ItemPriceAndStock.Add(kvp.Key, kvp.Value);
             }
         }
 

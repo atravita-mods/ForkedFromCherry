@@ -1,4 +1,6 @@
-﻿using ShopTileFramework.Data;
+﻿// Ignore Spelling: API
+
+using ShopTileFramework.Data;
 using ShopTileFramework.Shop;
 using StardewValley;
 using System;

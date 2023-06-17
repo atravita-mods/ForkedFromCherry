@@ -21,6 +21,7 @@ namespace ShopTileFramework.Utility
         public static List<string> RecipePacksToRemove = new List<string>();
         public static List<string> ItemsToRemove = new List<string>();
 
+        /* 
         /// <summary>
         /// Loads up the onject information for all types, 
         /// done at the start of each save loaded so that JA info is up to date
@@ -67,6 +68,8 @@ namespace ShopTileFramework.Utility
             _fruitTreeData = ModEntry.helper.Content.Load<Dictionary<int, string>>(@"Data/fruitTrees", ContentSource.GameContent);
             _cropData = ModEntry.helper.Content.Load<Dictionary<int, string>>(@"Data/Crops", ContentSource.GameContent);
         }
+        */
+        
 
         /// <summary>
         /// Given and ItemInventoryAndStock, and a maximum number, randomly reduce the stock until it hits that number

@@ -35,7 +35,7 @@ Shops can be opened with a custom tile property of "Shop" or "AnimalShop" and a 
 ## Requirements
 STF is a standalone SMAPI mod with no prerequisites other than the newest version of SMAPI. However there is optional support for items added in with [Json Assets](https://www.nexusmods.com/stardewvalley/mods/1720). Custom JA items can be added to shops by item name or by content pack.
 
-You do not need to make having the JA packs mandatory; if STF does not detect the item in the game, it will simple not add them.
+You do not need to make having the JA packs mandatory; if STF does not detect the item in the game, it will simply not add them.
 
 The same with BFAV animals-- if the specific animals ( or the BFAV mod ) are not installed, they are simply not added
 

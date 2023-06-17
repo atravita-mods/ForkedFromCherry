@@ -1,4 +1,7 @@
-﻿using ShopTileFramework.ItemPriceAndStock;
+﻿// Ignore Spelling: Multipler
+// cannot fix spelling mistakes in models.
+
+using ShopTileFramework.ItemPriceAndStock;
 using System.Collections.Generic;
 
 namespace ShopTileFramework.Data
@@ -12,7 +15,7 @@ namespace ShopTileFramework.Data
         public string Quote { get; set; } = null;
         public int ShopPrice { get; set; } = -1;
         public int MaxNumItemsSoldInStore { get; set; } = int.MaxValue;
-        public double DefaultSellPriceMultipler { set => DefaultSellPriceMultiplier = value; }
+        public double DefaultSellPriceMultipler { set => this.DefaultSellPriceMultiplier = value; }
         public double DefaultSellPriceMultiplier { get; set; } = 1;
         public Dictionary<double, string[]> PriceMultiplierWhen { get; set; } = null;
         public ItemStock[] ItemStocks { get; set; }

@@ -8,6 +8,7 @@ using System.Linq;
 using StardewModdingAPI;
 using StardewModdingAPI.Utilities;
 
+/*
 namespace ShopTileFramework.Patches
 {
     public class VanillaShopStockPatches
@@ -202,3 +203,4 @@ namespace ShopTileFramework.Patches
         }
     }
 }
+* /

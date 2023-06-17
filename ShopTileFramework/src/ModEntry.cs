@@ -1,17 +1,26 @@
-﻿using System;
+﻿// Ignore Spelling: Api
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
+
 using HarmonyLib;
+
 using Microsoft.Xna.Framework;
+
 using ShopTileFramework.API;
-using ShopTileFramework.Patches;
+// using ShopTileFramework.Patches;
 using ShopTileFramework.Shop;
+using ShopTileFramework.src.Utility;
 using ShopTileFramework.Utility;
+
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewModdingAPI.Utilities;
+
 using StardewValley;
 using StardewValley.Menus;
+
 using xTile.ObjectModel;
 
 namespace ShopTileFramework
@@ -20,8 +29,11 @@ namespace ShopTileFramework
     /// Entry point of the Shop Tile Framework mod. This mod allows custom shops to be added to the game via data in
     /// json format, loaded via the Stardew Valley Modding API (SMAPI) as content packs
     /// </summary>
-    public class ModEntry : Mod
+    internal sealed class ModEntry : Mod
     {
+        private const string SHOP = "Shop";
+        private const string ANIMALSHOP = "AnimalShop";
+
         //static copies of helper and monitor
         internal static IModHelper helper;
         internal static IMonitor monitor;
@@ -45,7 +57,7 @@ namespace ShopTileFramework
         {
             //make helper and monitor static so they can be accessed in other classes
             helper = h;
-            monitor = Monitor;
+            monitor = this.Monitor;
 
             //set verbose logging
             VerboseLogging = helper.ReadConfig<ModConfig>().VerboseLogging;
@@ -53,12 +65,14 @@ namespace ShopTileFramework
             if (VerboseLogging)
                 monitor.Log("Verbose logging has been turned on. More information will be printed to the console.", LogLevel.Info);
 
-            helper.Events.Input.ButtonPressed += Input_ButtonPressed;
-            helper.Events.Display.MenuChanged += Display_MenuChanged;
-            helper.Events.GameLoop.SaveLoaded += GameLoop_SaveLoaded;
-            helper.Events.GameLoop.DayStarted += GameLoop_DayStarted;
-            helper.Events.GameLoop.GameLaunched += GameLoop_GameLaunched;
-            helper.Events.GameLoop.UpdateTicking += GameLoop_UpdateTicking;
+            EventPreconditionToGSQ.Populate();
+
+            helper.Events.Input.ButtonPressed += this.Input_ButtonPressed;
+            helper.Events.Display.MenuChanged += this.Display_MenuChanged;
+            helper.Events.GameLoop.SaveLoaded += this.GameLoop_SaveLoaded;
+            helper.Events.GameLoop.DayStarted += this.GameLoop_DayStarted;
+            helper.Events.GameLoop.GameLaunched += this.GameLoop_GameLaunched;
+            helper.Events.GameLoop.UpdateTicking += this.GameLoop_UpdateTicking;
 
             //add console commands
             new ConsoleCommands().Register(helper);
@@ -67,11 +81,11 @@ namespace ShopTileFramework
             ShopManager = new ShopManager();
             ShopManager.LoadContentPacks();
 
+            // this likely never worked right.
             //load data into game content
-            helper.Content.AssetLoaders.Add(ShopManager);
+            // helper.Content.AssetLoaders.Add(ShopManager);
 
-            Harmony harmony = new Harmony(this.ModManifest.UniqueID);
-            VanillaShopStockPatches.Apply(harmony);
+            // VanillaShopStockPatches.Apply(new Harmony(this.ModManifest.UniqueID));
         }
         /// <summary>
         /// Checks for warps from the buildings/animals menu 
@@ -111,6 +125,7 @@ namespace ShopTileFramework
 
                 //display the animal purchase message without Marnie's face
                 Game1.activeClickableMenu = new DialogueBox(animalPurchaseMessage);
+                return;
             }
 
             //this is the vanilla Marnie menu for us to exclude animals from
@@ -119,21 +134,24 @@ namespace ShopTileFramework
                 .Select(animalName => APIs.FAVR != null ? APIs.FAVR.GetInternalName(animalName) : animalName);
 
             if (e.NewMenu is PurchaseAnimalsMenu && SourceLocation == null &&
-                !_changedMarnieStock && excludedAnimals.Count() > 0)
+                !this._changedMarnieStock && excludedAnimals.Count() > 0)
             {
                 //close the current menu to open our own	
                 Game1.exitActiveMenu();
-                var allAnimalsStock = StardewValley.Utility.getPurchaseAnimalStock();
-                _changedMarnieStock = true;
 
+                // var allAnimalsStock = Game1.currentLocation.ShowAnimalShopMenu();
+                this._changedMarnieStock = true;
+
+                /*
                 //removes all animals on the exclusion list
                 var newAnimalStock = (from animal in allAnimalsStock
                                       where !excludedAnimals.Contains(animal.Name)
                                       select animal).ToList();
                 Game1.activeClickableMenu = new PurchaseAnimalsMenu(newAnimalStock);
+                */ 
             }
 
-            //idk why some menus have a habit of warping the player a tile to the left ocassionally
+            //idk why some menus have a habit of warping the player a tile to the left occasionally
             //so im just gonna warp them back to their original location eh
             if (e.NewMenu == null && _playerPos != Vector2.Zero)
             {
@@ -145,7 +163,7 @@ namespace ShopTileFramework
         public override object GetApi()
         {
             //TODO: Test this
-            return ourApi ?? (ourApi = new STFApi());
+            return this.ourApi ??= new STFApi();
         }
 
         /// <summary>
@@ -162,7 +180,7 @@ namespace ShopTileFramework
             Translations.UpdateSelectedLanguage();
             ShopManager.UpdateTranslations();
 
-            ItemsUtil.UpdateObjectInfoSource();
+            // ItemsUtil.UpdateObjectInfoSource();
             ShopManager.InitializeItemStocks();
 
             ItemsUtil.RegisterItemsToRemove();
@@ -179,7 +197,7 @@ namespace ShopTileFramework
 
             APIs.RegisterJsonAssets();
             if (APIs.JsonAssets!= null)
-                APIs.JsonAssets.AddedItemsToShop += JsonAssets_AddedItemsToShop;
+                APIs.JsonAssets.AddedItemsToShop += this.JsonAssets_AddedItemsToShop;
 
             APIs.RegisterExpandedPreconditionsUtility();
             APIs.RegisterBFAV();
@@ -207,7 +225,7 @@ namespace ShopTileFramework
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void GameLoop_DayStarted(object sender, DayStartedEventArgs e)
+        private void GameLoop_DayStarted(object? sender, DayStartedEventArgs e)
         {
             ShopManager.UpdateStock();
         }
@@ -218,7 +236,7 @@ namespace ShopTileFramework
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void Input_ButtonPressed(object sender, ButtonPressedEventArgs e)
+        private void Input_ButtonPressed(object? sender, ButtonPressedEventArgs e)
         {
             //context and button check
             if (!Context.CanPlayerMove)
@@ -229,7 +247,7 @@ namespace ShopTileFramework
             SourceLocation = null;
             _playerPos = Vector2.Zero;
             //checks if i've changed marnie's stock already after opening her menu
-            _changedMarnieStock = false;
+            this._changedMarnieStock = false;
 
             if (Constants.TargetPlatform == GamePlatform.Android)
             {
@@ -244,7 +262,7 @@ namespace ShopTileFramework
             else if (!e.Button.IsActionButton())
                 return;
 
-            Vector2 clickedTile = Helper.Input.GetCursorPosition().GrabTile;
+            Vector2 clickedTile = this.Helper.Input.GetCursorPosition().GrabTile;
 
             //check if there is a tile property on Buildings layer
             IPropertyCollection tileProperty = TileUtility.GetTileProperty(Game1.currentLocation, "Buildings", clickedTile);
@@ -253,7 +271,7 @@ namespace ShopTileFramework
                 return;
 
             //if there is a tile property, attempt to open shop if it exists
-            CheckForShopToOpen(tileProperty,e);
+            this.CheckForShopToOpen(tileProperty,e);
         }
 
         /// <summary>
@@ -264,7 +282,7 @@ namespace ShopTileFramework
         private void CheckForShopToOpen(IPropertyCollection tileProperty, ButtonPressedEventArgs e)
         {
             //check if there is a Shop property on clicked tile
-            tileProperty.TryGetValue("Shop", out PropertyValue shopProperty);
+            tileProperty.TryGetValue("Shop", out string shopProperty);
             if (VerboseLogging)
                 monitor.Log($"Shop Property value is: {shopProperty}");
             if (shopProperty != null) //There was a `Shop` property so attempt to open shop
@@ -298,7 +316,7 @@ namespace ShopTileFramework
                     }
                     else
                     {
-                        Monitor.Log($"A Shop tile was clicked, but a shop by the name \"{shopName}\" " +
+                        this.Monitor.Log($"A Shop tile was clicked, but a shop by the name \"{shopName}\" " +
                             $"was not found.", LogLevel.Debug);
                     }
                 }
@@ -319,17 +337,12 @@ namespace ShopTileFramework
                     }
                     else
                     {
-                        Monitor.Log($"An Animal Shop tile was clicked, but a shop by the name \"{shopName}\" " +
+                        this.Monitor.Log($"An Animal Shop tile was clicked, but a shop by the name \"{shopName}\" " +
                             $"was not found.", LogLevel.Debug);
                     }
                 }
 
             } //end shopProperty null check
         }
-    }
-
-    class ModConfig
-    {
-        public bool VerboseLogging { get; set; } = false;
     }
 }

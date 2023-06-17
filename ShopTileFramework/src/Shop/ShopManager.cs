@@ -14,7 +14,7 @@ namespace ShopTileFramework.Shop
     /// This class holds and manages all the shops, loading content packs to create shops
     /// And containing methods to update everything that needs to
     /// </summary>
-    class ShopManager : IAssetLoader
+    class ShopManager
     {
         private readonly Dictionary<string, ItemShop> ItemShops = new Dictionary<string, ItemShop>();
         internal readonly Dictionary<string, AnimalShop> AnimalShops = new Dictionary<string, AnimalShop>();
@@ -69,7 +69,7 @@ namespace ShopTileFramework.Shop
                 ModEntry.monitor.Log($"Loading: {contentPack.Manifest.Name} by {contentPack.Manifest.Author} | " +
                     $"{contentPack.Manifest.Version} | {contentPack.Manifest.Description}", LogLevel.Info);
 
-                RegisterShops(data, contentPack);
+                this.RegisterShops(data, contentPack);
             }
         }
 
@@ -86,7 +86,7 @@ namespace ShopTileFramework.Shop
             {
                 foreach (ItemShop shopPack in data.Shops)
                 {
-                    if (ItemShops.ContainsKey(shopPack.ShopName))
+                    if (this.ItemShops.ContainsKey(shopPack.ShopName))
                     {
                         ModEntry.monitor.Log($"{contentPack.Manifest.Name} is trying to add a Shop \"{shopPack.ShopName}\"," +
                             $" but a shop of this name has already been added. " +
@@ -94,7 +94,7 @@ namespace ShopTileFramework.Shop
                         continue;
                     }
                     shopPack.ContentPack = contentPack;
-                    ItemShops.Add(shopPack.ShopName, shopPack);
+                    this.ItemShops.Add(shopPack.ShopName, shopPack);
                 }
             }
 
@@ -102,14 +102,14 @@ namespace ShopTileFramework.Shop
             {
                 foreach (AnimalShop animalShopPack in data.AnimalShops)
                 {
-                    if (AnimalShops.ContainsKey(animalShopPack.ShopName))
+                    if (this.AnimalShops.ContainsKey(animalShopPack.ShopName))
                     {
                         ModEntry.monitor.Log($"{contentPack.Manifest.Name} is trying to add an AnimalShop \"{animalShopPack.ShopName}\"," +
                             $" but a shop of this name has already been added. " +
                             $"It will not be added.", LogLevel.Warn);
                         continue;
                     }
-                    AnimalShops.Add(animalShopPack.ShopName, animalShopPack);
+                    this.AnimalShops.Add(animalShopPack.ShopName, animalShopPack);
                 }
             }
 
@@ -117,28 +117,28 @@ namespace ShopTileFramework.Shop
             {
                 foreach (var vanillaShopPack in data.VanillaShops)
                 {
-                    if (!VanillaShopNames.Contains(vanillaShopPack.ShopName)){
+                    if (!this.VanillaShopNames.Contains(vanillaShopPack.ShopName)){
                         ModEntry.monitor.Log($"{contentPack.Manifest.Name}" +
                             $" is trying to edit nonexistent vanilla store" +
                             $" \"{vanillaShopPack.ShopName}\"", LogLevel.Warn);
                         continue;
                     }
 
-                    if (VanillaShops.ContainsKey(vanillaShopPack.ShopName))
+                    if (this.VanillaShops.ContainsKey(vanillaShopPack.ShopName))
                     {
-                        VanillaShops[vanillaShopPack.ShopName].StockManagers.Add(new ItemPriceAndStockManager(vanillaShopPack));
+                        this.VanillaShops[vanillaShopPack.ShopName].StockManagers.Add(new ItemPriceAndStockManager(vanillaShopPack));
 
                         if (vanillaShopPack.ReplaceInsteadOfAdd)
-                            VanillaShops[vanillaShopPack.ShopName].ReplaceInsteadOfAdd = true;
+                            this.VanillaShops[vanillaShopPack.ShopName].ReplaceInsteadOfAdd = true;
 
                         if (vanillaShopPack.AddStockAboveVanilla)
-                            VanillaShops[vanillaShopPack.ShopName].AddStockAboveVanilla = true;
+                            this.VanillaShops[vanillaShopPack.ShopName].AddStockAboveVanilla = true;
 
                     } else
                     {
                         vanillaShopPack.Initialize();
                         vanillaShopPack.StockManagers.Add(new ItemPriceAndStockManager(vanillaShopPack));
-                        VanillaShops.Add(vanillaShopPack.ShopName, vanillaShopPack);
+                        this.VanillaShops.Add(vanillaShopPack.ShopName, vanillaShopPack);
                     }
                 }
             }
@@ -150,12 +150,12 @@ namespace ShopTileFramework.Shop
         /// </summary>
         public void UpdateTranslations()
         {
-            foreach (ItemShop itemShop in ItemShops.Values)
+            foreach (ItemShop itemShop in this.ItemShops.Values)
             {
                 itemShop.UpdateTranslations();
             }
 
-            foreach (AnimalShop animalShop in AnimalShops.Values)
+            foreach (AnimalShop animalShop in this.AnimalShops.Values)
             {
                 animalShop.UpdateTranslations();
             }
@@ -166,7 +166,7 @@ namespace ShopTileFramework.Shop
         /// </summary>
         public void InitializeShops()
         {
-            foreach (ItemShop itemShop in ItemShops.Values)
+            foreach (ItemShop itemShop in this.ItemShops.Values)
             {
                 itemShop.Initialize();
             }
@@ -177,12 +177,12 @@ namespace ShopTileFramework.Shop
         /// </summary>
         public void InitializeItemStocks()
         {
-            foreach (ItemShop itemShop in ItemShops.Values)
+            foreach (ItemShop itemShop in this.ItemShops.Values)
             {
                 itemShop.StockManager.Initialize();
             }
 
-            foreach (var manager in VanillaShops.Values.SelectMany(vanillaShop => vanillaShop.StockManagers))
+            foreach (var manager in this.VanillaShops.Values.SelectMany(vanillaShop => vanillaShop.StockManagers))
             {
                 manager.Initialize();
             }
@@ -235,11 +235,11 @@ namespace ShopTileFramework.Shop
             switch (shopType)
             {
                 case "ItemShops":
-                    return (T) (object) ItemShops;
+                    return (T) (object)this.ItemShops;
                 case "AnimalShops":
-                    return (T) (object) AnimalShops;
+                    return (T) (object)this.AnimalShops;
                 case "VanillaShops":
-                    return (T) (object) VanillaShops;
+                    return (T) (object)this.VanillaShops;
             }
             throw new InvalidOperationException();
         }

@@ -31,7 +31,7 @@ namespace ShopTileFramework.Shop
         /// </summary>
         public void Initialize()
         {
-            StockManager = new ItemPriceAndStockManager(this);
+            this.StockManager = new ItemPriceAndStockManager(this);
         }
 
         /// <summary>
@@ -39,22 +39,22 @@ namespace ShopTileFramework.Shop
         /// </summary>
         public void UpdatePortrait()
         {
-            if (PortraitPath == null)
+            if (this.PortraitPath == null)
                 return;
 
             //construct seasonal path to the portrait
-            string seasonalPath = PortraitPath.Insert(PortraitPath.IndexOf('.'), "_" + Game1.currentSeason);
+            string seasonalPath = this.PortraitPath.Insert(this.PortraitPath.IndexOf('.'), "_" + Game1.currentSeason);
             try
             {
                 //if the seasonal version exists, load it
-                if (ContentPack.HasFile(seasonalPath)) 
+                if (this.ContentPack.HasFile(seasonalPath)) 
                 {
-                    _portrait = ContentPack.LoadAsset<Texture2D>(seasonalPath);
+                    this._portrait = this.ContentPack.LoadAsset<Texture2D>(seasonalPath);
                 }
                 //if the seasonal version doesn't exist, try to load the default
-                else if (ContentPack.HasFile(PortraitPath))
+                else if (this.ContentPack.HasFile(this.PortraitPath))
                 {
-                    _portrait = ContentPack.LoadAsset<Texture2D>(PortraitPath);
+                    this._portrait = this.ContentPack.LoadAsset<Texture2D>(this.PortraitPath);
                 }
             }
             catch (Exception ex) //couldn't load the image
@@ -68,9 +68,9 @@ namespace ShopTileFramework.Shop
         /// </summary>
         public void UpdateItemPriceAndStock()
         {
-            _shopOpenedToday = false;
-            ModEntry.monitor.Log($"Generating stock for {ShopName}", LogLevel.Debug);
-            StockManager.Update();
+            this._shopOpenedToday = false;
+            ModEntry.monitor.Log($"Generating stock for {this.ShopName}", LogLevel.Debug);
+            this.StockManager.Update();
         }
 
         /// <summary>
@@ -78,22 +78,22 @@ namespace ShopTileFramework.Shop
         /// </summary>
         public void DisplayShop(bool debug = false)
         {
-            ModEntry.monitor.Log($"Attempting to open the shop \"{ShopName}\"", LogLevel.Trace);
+            ModEntry.monitor.Log($"Attempting to open the shop \"{this.ShopName}\"", LogLevel.Trace);
 
             //if conditions aren't met, display closed message if there is one
             //skips condition checking if debug mode
-            if (!debug && !APIs.Conditions.CheckConditions(When))
+            if (!debug && !APIs.Conditions.CheckConditions(this.When))
             {
-                if (ClosedMessage != null)
+                if (this.ClosedMessage != null)
                 {
-                    Game1.activeClickableMenu = new DialogueBox(ClosedMessage);
+                    Game1.activeClickableMenu = new DialogueBox(this.ClosedMessage);
                 }
 
                 return;
             }
 
             int currency = 0;
-            switch (StoreCurrency)
+            switch (this.StoreCurrency)
             {
                 case "festivalScore":
                     currency = 1;
@@ -103,28 +103,28 @@ namespace ShopTileFramework.Shop
                     break;
             }
 
-            var shopMenu = new ShopMenu(StockManager.ItemPriceAndStock, currency: currency);
+            var shopMenu = new ShopMenu(this.StockManager.ItemPriceAndStock, currency: currency);
 
-            if (CategoriesToSellHere != null)
-                shopMenu.categoriesToSellHere = CategoriesToSellHere;
+            if (this.CategoriesToSellHere != null)
+                shopMenu.categoriesToSellHere = this.CategoriesToSellHere;
 
-            if (_portrait != null)
+            if (this._portrait != null)
             {
                 shopMenu.portraitPerson = new NPC();
                 //only add a shop name the first time store is open each day so that items added from JA's side are only added once
-                if (!_shopOpenedToday)
-                    shopMenu.portraitPerson.Name = "STF." + ShopName;
+                if (!this._shopOpenedToday)
+                    shopMenu.portraitPerson.Name = "STF." + this.ShopName;
 
-                shopMenu.portraitPerson.Portrait = _portrait;
+                shopMenu.portraitPerson.Portrait = this._portrait;
             }
 
-            if (Quote != null)
+            if (this.Quote != null)
             {
-                shopMenu.potraitPersonDialogue = Game1.parseText(Quote, Game1.dialogueFont, 304);
+                shopMenu.potraitPersonDialogue = Game1.parseText(this.Quote, Game1.dialogueFont, 304);
             }
 
             Game1.activeClickableMenu = shopMenu;
-            _shopOpenedToday = true;
+            this._shopOpenedToday = true;
         }
 
         /// <summary>
@@ -132,8 +132,8 @@ namespace ShopTileFramework.Shop
         /// </summary>
         internal void UpdateTranslations()
         {
-            Quote = Translations.Localize(Quote, LocalizedQuote);
-            ClosedMessage = Translations.Localize(ClosedMessage, LocalizedClosedMessage);
+            this.Quote = Translations.Localize(this.Quote, this.LocalizedQuote);
+            this.ClosedMessage = Translations.Localize(this.ClosedMessage, this.LocalizedClosedMessage);
         }
     }
 }
